@@ -1,9 +1,15 @@
 package com.linkhos.vaadin.demo.ex3;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+
 public class Pessoa {
 
     private String nome;
     private String sobrenome;
+    
+    @Min(0)
+    @Max(130)
     private int idade;
 
     public Pessoa() {

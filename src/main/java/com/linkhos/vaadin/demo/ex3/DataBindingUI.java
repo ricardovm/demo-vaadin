@@ -2,6 +2,7 @@ package com.linkhos.vaadin.demo.ex3;
 
 import com.vaadin.annotations.Theme;
 import com.vaadin.cdi.CDIUI;
+import com.vaadin.data.fieldgroup.BeanFieldGroup;
 import com.vaadin.data.fieldgroup.FieldGroup;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.BeanItemContainer;
@@ -37,7 +38,7 @@ public class DataBindingUI extends UI {
         
         mainLayout.addComponent(pessoasTable);
         
-        FieldGroup binder = new FieldGroup();
+        FieldGroup binder = new BeanFieldGroup<>(Pessoa.class);
         binder.setItemDataSource(new BeanItem(new Pessoa(), Pessoa.class));
         
         VerticalLayout editLayout = new VerticalLayout();
