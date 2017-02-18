@@ -5,6 +5,8 @@ import com.vaadin.cdi.CDIUI;
 import com.vaadin.data.BeanValidationBinder;
 import com.vaadin.data.Binder;
 import com.vaadin.data.ValidationException;
+import com.vaadin.data.provider.DataProvider;
+import com.vaadin.data.provider.ListDataProvider;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Grid;
@@ -26,10 +28,12 @@ public class DataBindingUI extends UI {
         mainLayout.setSizeFull();
         mainLayout.setMargin(true);
         mainLayout.setSpacing(true);
-
+        
         List<Pessoa> pessoas = carregar();
+        ListDataProvider<Pessoa> ldp = DataProvider.ofCollection(pessoas);
+
         Grid<Pessoa> pessoasGrid = new Grid<>();
-        pessoasGrid.setItems(pessoas);
+        pessoasGrid.setDataProvider(ldp);
         pessoasGrid.setSizeFull();
         pessoasGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
         pessoasGrid.addColumn(Pessoa::getNome).setCaption("Nome");
