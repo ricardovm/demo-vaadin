@@ -2,18 +2,19 @@ package com.linkhos.vaadin.demo.ex3;
 
 import com.vaadin.annotations.Theme;
 import com.vaadin.cdi.CDIUI;
-import com.vaadin.data.fieldgroup.BeanFieldGroup;
-import com.vaadin.data.fieldgroup.FieldGroup;
-import com.vaadin.data.util.BeanItem;
-import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.data.BeanValidationBinder;
+import com.vaadin.data.Binder;
+import com.vaadin.data.ValidationException;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Grid;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Table;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Theme("valo")
 @CDIUI("data-binding")
@@ -25,21 +26,22 @@ public class DataBindingUI extends UI {
         mainLayout.setSizeFull();
         mainLayout.setMargin(true);
         mainLayout.setSpacing(true);
+
+        List<Pessoa> pessoas = carregar();
+        Grid<Pessoa> pessoasGrid = new Grid<>();
+        pessoasGrid.setItems(pessoas);
+        pessoasGrid.setSizeFull();
+        pessoasGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
+        pessoasGrid.addColumn(Pessoa::getNome).setCaption("Nome");
+        pessoasGrid.addColumn(Pessoa::getSobrenome).setCaption("Sobrenome");
+        pessoasGrid.addColumn(Pessoa::getIdade).setCaption("Idade");
+
+        mainLayout.addComponent(pessoasGrid);
         
-        BeanItemContainer<Pessoa> bic = new BeanItemContainer<>(Pessoa.class);
-        bic.addAll(carregar());
-        
-        Table pessoasTable = new Table();
-        pessoasTable.setSizeFull();
-        pessoasTable.setContainerDataSource(bic);
-        pessoasTable.setSelectable(true);
-        pessoasTable.setMultiSelect(false);
-        pessoasTable.setVisibleColumns(new Object[] { "nome", "sobrenome", "idade" });
-        
-        mainLayout.addComponent(pessoasTable);
-        
-        FieldGroup binder = new BeanFieldGroup<>(Pessoa.class);
-        binder.setItemDataSource(new BeanItem(new Pessoa(), Pessoa.class));
+        Pessoa pessoa = new Pessoa();
+        Binder binder = new BeanValidationBinder<>(Pessoa.class);
+        //binder.setBean(pessoa);
+        binder.readBean(pessoa);
         
         VerticalLayout editLayout = new VerticalLayout();
         editLayout.setSpacing(true);
@@ -50,20 +52,26 @@ public class DataBindingUI extends UI {
         editLayout.addComponent(pessoaForm);
         
         Button gravarButton = new Button("Gravar", e -> { 
-            try { 
-                binder.commit();
-                System.out.println(pessoasTable.getValue());
-            } catch (FieldGroup.CommitException ex) {
-            } 
+            try {
+                Optional<Pessoa> p = pessoasGrid.getSelectedItems().stream().findFirst();
+                if (p.isPresent()) {
+                    binder.writeBean(p.get());
+                }
+                pessoasGrid.getDataProvider().refreshAll();
+                System.out.println(pessoasGrid.getSelectedItems().stream().findFirst());
+            } catch (ValidationException ex) {
+                Notification.show("Erro", ex.getMessage(), Notification.Type.WARNING_MESSAGE);
+            }
         });
         editLayout.addComponent(gravarButton);
         
-        binder.bindMemberFields(pessoaForm);
+        /* Custom binding for incompatible type properties */
+        binder.forMemberField(pessoaForm.idade).withConverter(v -> Integer.valueOf((String) v), String::valueOf, "Idade deve ser um número");
+        binder.bindInstanceFields(pessoaForm);
         
-        pessoasTable.addValueChangeListener(e -> {
-            if (pessoasTable.getValue() != null) {
-                binder.setItemDataSource(bic.getItem(pessoasTable.getValue()));
-            }
+        pessoasGrid.addSelectionListener(e -> {
+            Optional<Pessoa> selecionado = pessoasGrid.getSelectedItems().stream().findFirst();
+            selecionado.ifPresent(s -> binder.readBean(s));
         });
         
         setContent(mainLayout);

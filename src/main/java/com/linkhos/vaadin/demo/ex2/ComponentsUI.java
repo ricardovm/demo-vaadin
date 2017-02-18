@@ -41,15 +41,12 @@ public class ComponentsUI extends UI {
         mainLayout.addComponent(new Button("Button"));
         mainLayout.addComponent(new CheckBox("CheckBox"));
 
-        ComboBox comboBox = new ComboBox("ComboBoxs");
+        ComboBox<String> comboBox = new ComboBox<>("ComboBoxs");
         mainLayout.addComponent(comboBox);
         
-        comboBox.addContainerProperty("caption", String.class, "");
-        comboBox.setItemCaptionPropertyId("caption");
-        for (String identifier : themeVariants.keySet()) {
-            comboBox.addItem(identifier).getItemProperty("caption")
-                    .setValue(themeVariants.get(identifier));
-        }
+        comboBox.setItemCaptionGenerator(themeVariants::get);
+        comboBox.setEmptySelectionAllowed(false);
+        comboBox.setItems(themeVariants.keySet());
         
         comboBox.setValue(ValoTheme.THEME_NAME);
         comboBox.addValueChangeListener(e -> setTheme((String) comboBox.getValue()));
