@@ -60,8 +60,8 @@ public class DataBindingUI extends UI {
                 Optional<Pessoa> p = pessoasGrid.getSelectedItems().stream().findFirst();
                 if (p.isPresent()) {
                     binder.writeBean(p.get());
+                    ldp.refreshItem(p.get());
                 }
-                pessoasGrid.getDataProvider().refreshAll();
                 System.out.println(pessoasGrid.getSelectedItems().stream().findFirst());
             } catch (ValidationException ex) {
                 Notification.show("Erro", ex.getMessage(), Notification.Type.WARNING_MESSAGE);
